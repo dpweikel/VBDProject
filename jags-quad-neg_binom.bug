@@ -1,0 +1,14 @@
+model {
+  
+  for (i in 1:N) {
+    Y[i] ~ dbin(mu[i], n[i])
+    mu.temp[i] <- -n.qd*(T[i]-T0)*(T[i]-Tm)*((T[i]>T0))*((T[i]<Tm))
+    mu[i]<- 1*(mu.temp[i]>1) + mu.temp[i]*(mu.temp[i]<1)
+  }
+
+  qd<- -n.qd
+  Tm  ~ dunif(25,45)
+  T0 ~ dunif(0, 24)
+  n.qd  ~ dexp(1)
+
+}

@@ -1,0 +1,14 @@
+model {
+  
+  for (i in 1:N) {
+    Y[i] ~ dnorm(mu[i], tau)T(0,)
+    mu[i] <- inter-n.slope*T[i]+qd*T[i]^2
+  }
+
+  inter ~ dgamma(2,2)
+  n.slope ~ dgamma(1, 1)
+  qd  ~ dgamma(2,2)
+  sigma<-1/tau
+  tau ~ dnorm(1000, 1/500)
+
+}
