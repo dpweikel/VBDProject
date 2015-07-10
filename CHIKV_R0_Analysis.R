@@ -1,8 +1,6 @@
 ### This file will take the individual parameter samples for all the traits and use
 ### them to build the CHIKV R0 model. 
 
-## Hi! Did I do this right? Secondary check, just to make sure.
-
 ## Remember to set your working directory so the code can access the data and 
 ## necessary supplementary code.
 setwd("~/Desktop/Summer '15 /Models/CHIKV Model")
