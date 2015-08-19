@@ -109,7 +109,7 @@ mycol<-1
 plot(data$T, data$trait, xlim=c(0,45), ylim=c(0,3),
      pch=(mycol+20),
      xlab="Temperature (C)",
-     ylab="Mu (Survival Rate) - Quad w/o Priors",
+     ylab="Mu (Survival Rate) - Quad w/o Informed Priors",
      col=mycol, cex=1.5)
 
 add.sim.lines(Temps, sim.data=out1$fits, q=q1, mycol=8)
@@ -219,7 +219,7 @@ mycol<-1
 plot(data$T, data$trait, xlim=c(0,45), ylim=c(0,3),
      pch=(mycol+20),
      xlab="Temperature (C)",
-     ylab="Mu (Survival Rate) - Quad w/o Priors",
+     ylab="Mu (Survival Rate) - Quad w/o Informed Priors",
      col=mycol, cex=1.5)
 
 add.sim.lines(Temps, sim.data=out1$fits, q=q1, mycol=8)
