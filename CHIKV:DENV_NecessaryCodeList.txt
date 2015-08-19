@@ -1,0 +1,38 @@
+This text file contains a list of all of the necessary code and peripheral documents
+for the Dengue and CHIKV models and their analysis.
+
+CHIKV-
+	CHIKV_IndividualParameterFitCode.R
+	CHIKV_R0_Analysis.R
+	albopictusCHIKVmodelTempData.csv
+	aegyptiCHIKVmodelTempData.csv*
+	CHIKV_ParameterFits.Rsave
+	CHIKV_ParameterFits2.Rsave*
+	
+DENV-
+	DENV_IndividualParameterFitCode.R*
+	DENV_R0_Analysis.R*
+	albopictusDENVmodelTempData.csv*
+	aegyptiDENVmodelTempData.csv*
+	DENV_ParameterFits.Rsave*
+	DENV_ParameterFits2.Rsave*
+	
+Both- 
+	rjags Package
+	IDPmisc Package
+	mcmc_utils.R
+	temp_deriv_functions.R
+	jags-briere_binom.bug
+	jags-briere-trunc.bug
+	jags-briere.bug
+	jags-lin.bug
+	jags-quad-neg_binom.bug
+	jags-quad-neg-trunc.bug
+	jags-quad-neg.bug
+	jags-quad.bug
+	jags-quad2.bug
+	
+	
+* Denotes incomplete, when completed and added to zip folder the mark
+	will be removed. After all have been added, this footnote will be
+	removed. 

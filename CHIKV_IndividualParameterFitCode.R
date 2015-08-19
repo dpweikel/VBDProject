@@ -3,7 +3,7 @@
 
 ## Remember to set your working directory so the code can access the data and 
 ## necessary supplementary code.
-setwd("~/Desktop/Summer '15 /Models/CHIKV Model")
+setwd("~/GitHub/VBDProject")
 
 ## Loading the required packages and supplementary code for sampling and analysis.
 library(IDPmisc)
@@ -14,7 +14,10 @@ source("mcmc_utils.R")
 
 # This file contains the derivatives for the functions.
 source("temp_deriv_functions.R") 
-                                
+
+# Creating a small constant to keep denominators from being zero.
+ec<-0.000001 
+
 ## Loading the data; my data will be called albopictusCHIKVmodelTempData.csv 
 data.all <- read.csv("albopictusCHIKVmodelTempData.csv", header=TRUE)
 
@@ -259,20 +262,22 @@ e2a.samps <- samps.q
 
 data <- data.all[which(data.all$trait.name=="p.succ"),2:7]
 
+data$trait = -log(data$trait/data$trait2)
+
 # Plot the data to see which fucntion, Briere or Quadratic, is a more suitable fit for 
 # the data.
 
-plot(trait/trait2~T, data=data)
+plot(trait~T, data=data)
 
 # Given the data the Negative Quadratic function is chosen. Jags-quad-neg_binom.bug 
 # contains the specifics of the Negative Quadratic model that fits binomial data
 # with the default priors. 
 
-jags <- jags.model('jags-quad-neg_binom.bug',
-                   data = list('Y' = data$trait, "n"= data$trait2,
+jags <- jags.model('jags-quad2.bug',
+                   data = list('Y' = data$trait,
                                'T' = data$T, 'N'=length(data$T)),
                    n.chains = n.chains,
-                   inits=list(T0=5, Tm=33, n.qd=0.005), n.adapt = n.adapt)
+                   inits=list(T0=5, Tm=33, qd=0.005), n.adapt = n.adapt)
 
 # The coda.samples() function takes n.samps new samples, and saves
 # them in the coda format, which we use for visualization and
@@ -280,19 +285,18 @@ jags <- jags.model('jags-quad-neg_binom.bug',
 
 coda.samps <- coda.samples(jags, c('T0','Tm', 'qd'), n.samps)
 
-# These plots are useful to asses model convergence and general diagnosticl information. 
+# These plots are useful to asses model convergence and general diagnostic information. 
 
 plot(coda.samps)
 
 # This command combines the samples from the n.chains into a format
 # that we can use for further analyses
 
-samps.q <- make.quad.samps(coda.samps, nchains=n.chains,
+samps.mu <- make.quad.samps(coda.samps, nchains=n.chains,
 							 samp.lims=c(1, n.samps), sig=FALSE)
-samps.q$n.qd <- samps.q$qd
-p.samps <- samps.q
+mu.samps <- samps.mu
 
 ## This code is just save the MCMC samples for further analysis in the R0 model.
-save(a.samps, b.samps, c.samps, MDR.samps, TFD.samps, e2a.samps, p.samps,
+save(a.samps, b.samps, c.samps, MDR.samps, TFD.samps, e2a.samps, mu.samps,
 	 file = "CHIKV_ParameterFits.Rsave")
 

@@ -3,7 +3,7 @@
 
 ## Remember to set your working directory so the code can access the data and 
 ## necessary supplementary code.
-setwd("~/Desktop/Summer '15 /Models/DENV Model")
+setwd("~/GitHub/VBDProject")
 
 ## Loading the required packages and supplementary code for sampling and analysis.
 library(IDPmisc)
@@ -13,7 +13,11 @@ library('rjags')
 source("mcmc_utils.R") 
 
 # This file contains the derivatives for the functions.
+source("temp_functions.R") 
 source("temp_deriv_functions.R") 
+
+# Creating a small constant to keep denominators from being zero.
+ec<-0.000001 
 
 ## Loading the data; my data will be called aegyptiDENVmodelTempData.csv 
 data.all <- read.csv("aegyptiDENVmodelTempData.csv", header=TRUE)
@@ -250,49 +254,9 @@ samps.q$n.qd <- samps.q$qd
 e2a.samps <- samps.q
 
 ## The next parameter is p, the daily probability that an adult mosquito
-## survives. 
-
-data.p <- data.all[which(data.all$trait.name=="p"),]
-
-# Taking the mortality rate and changing it into the survival probability
-data.days <- data.all[which(data.all$trait.name=="p/days"),]
-
-data.days$trait = exp(-(data.days$trait)*(849/45))
-
-# Merginging two sets together
-data <- rbind(data.days, data.p)
-
-# Plot the data to see which fucntion, Briere or Quadratic, is a more suitable fit for 
-# the data.
-
-plot(trait ~ T, data = data.p)
-plot(trait ~ T, data = data.days)
-plot(trait ~ T, data = data)
-
-# Given the data the Negative Quadratic function is chosen. Jags-quad-neg.bug contains
-# the specifics of the Negative Quadratic model with the default priors. 
-
-jags <- jags.model('jags-quad-neg.bug',
-                   data = list('Y' = data$trait, 'T' = data$T, 'N'=length(data$T)),
-                   n.chains = n.chains,
-                   inits=list(T0=5, Tm=33, n.qd=0.005), n.adapt = n.adapt)
-
-# The coda.samples() function takes n.samps new samples, and saves
-# them in the coda format, which we use for visualization and
-# analysis
-
-coda.samps <- coda.samples(jags, c('T0','Tm', 'qd'), n.samps)
-
-# These plots are useful to asses model convergence and general diagnosticl information. 
-plot(coda.samps)
-
-# This command combines the samples from the n.chains into a format
-# that we can use for further analyses
-
-samps.q <- make.quad.samps(coda.samps, nchains=n.chains, 
-                           samp.lims=c(1, n.samps), sig=FALSE)
-samps.q$n.qd <- samps.q$qd
-p.samps <- samps.q
+## survives. Which will be analyzed as mu in mu-comp-script.R and the
+## samples from that analysis will be saved and used in the overall R0
+## analysis and computation. 
 
 ## The final parameter to fit is PDR, the parasite/virus development rate.
 
@@ -330,5 +294,5 @@ PDR.samps <-  samps
 
 ## This code is just save the MCMC samples for further analysis in the R0 model.
 save(a.samps, b.samps, c.samps, MDR.samps, EFD.samps, 
-     e2a.samps, p.samps, PDR.samps,
+     e2a.samps, PDR.samps,
      file = "DENV_ParameterFits.Rsave")

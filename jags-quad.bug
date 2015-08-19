@@ -5,9 +5,9 @@ model {
     mu[i] <- inter-n.slope*T[i]+qd*T[i]^2
   }
 
-  inter ~ dgamma(2,2)
-  n.slope ~ dgamma(1, 1)
-  qd  ~ dgamma(2,2)
+  inter ~ dgamma(1,100)
+  n.slope ~ dgamma(1, 100)
+  qd  ~ dgamma(1, 100)
   sigma<-1/tau
   tau ~ dnorm(1000, 1/500)
 

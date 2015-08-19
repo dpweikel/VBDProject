@@ -3,7 +3,7 @@
 
 ## Remember to set your working directory so the code can access the data and 
 ## necessary supplementary code.
-setwd("~/Desktop/Summer '15 /Models/CHIKV Model")
+setwd("~/GitHub/VBDProject")
 
 # Loading the required packages and supplementary code for sampling and analysis.
 library(IDPmisc)
@@ -40,11 +40,10 @@ lthin<-length(thinned)
 ec<-0.000001           
 
 ## Creating the function encoding the value of R0 as a function of the parameters
-myR0<-function(a, b, c, PDR, MDR, TFD, e2a, p){
-  mu = -log(p+ec)
+myR0<-function(a, b, c, PDR, MDR, TFD, e2a, mu){
   EFD = TFD*(1/(a+ec))
   bc = (b*c)
-  ((a^2*bc*(EFD*e2a*MDR/(mu)^2)*exp(-mu/(PDR+ec)))/(mu))^0.5
+  ((a^2*bc*(EFD*e2a*MDR/mu^2)*exp(-mu/(PDR+ec)))/(mu+ec))^0.5
 }
 
 ## The following code runs through the samples and calculates the
@@ -53,7 +52,7 @@ myR0<-function(a, b, c, PDR, MDR, TFD, e2a, p){
 ## column is a trajectory).
 
 R0<-matrix(NA,t,lthin)
-a<-b<-c<-PDR<-MDR<-TFD<-e2a<-bc<-p<-matrix(NA,t,lthin)
+a<-b<-c<-PDR<-MDR<-TFD<-e2a<-bc<-mu<-matrix(NA,t,lthin)
 
 for (j in 1:lthin){
   if(j%%50==0) cat("iteration ", j, "\n")
@@ -66,11 +65,10 @@ for (j in 1:lthin){
   e2a[,j] = quad.2.trunc(temp, e2a.samps[i,1], e2a.samps[i,2], e2a.samps[i,3])
   b[,j] = briere(temp, b.samps[i,3], b.samps[i,2], b.samps[i,1])
   c[,j] = briere(temp, c.samps[i,3], c.samps[i,2], c.samps[i,1])
-  p[,j] = quad.2.trunc(temp, p.samps[i,1], p.samps[i,2],p.samps[i,3])
+  mu[,j] = quad.2(temp, mu.samps[i,1], mu.samps[i,2], mu.samps[i,3])
   
   # Calculate Ro equation
-  R0[,j]<-myR0(a[,j], b[,j], c[,j], PDR[,j], MDR[,j], TFD[,j], e2a[,j], p[,j])
-  
+  R0[,j] = myR0(a[,j], b[,j], c[,j], PDR[,j], MDR[,j], TFD[,j], e2a[,j], mu[,j])
 }
 
 ## Next we calculate the posterior mean trajectory of each component of
@@ -84,13 +82,12 @@ PDR.M<-rowMeans(PDR)
 MDR.M<-rowMeans(MDR)
 TFD.M<-rowMeans(TFD)
 e2a.M<-rowMeans(e2a)
-bc.M<-rowMeans(bc)
-p.M<-rowMeans(p)
+mu.M<-rowMeans(mu)
 R0.M<-rowMeans(R0)
 
 # Build matrices to hold results
 
-R0.a<-R0.b<-R0.c<-R0.TFD<-R0.e2a<-R0.MDR<-R0.p<-R0.PDR<-matrix(NA,t,lthin)
+R0.a<-R0.b<-R0.c<-R0.TFD<-R0.e2a<-R0.MDR<-R0.mu<-R0.PDR<-matrix(NA,t,lthin)
 
 ## For uncertainty analysis: calculate posterior samples for R0 with
 ## all but a single component fixed the posterior mean.
@@ -100,14 +97,14 @@ for (j in 1:lthin){
   # Calculating derivative trajectories
   i<-thinned[j]
   ## Calculating R0 with most components set to their means
-  R0.a[,j] = myR0(a[,j], b.M, c.M, PDR.M, MDR.M, TFD.M, e2a.M, p.M)
-  R0.b[,j] = myR0(a.M, b[,j], c.M, PDR.M, MDR.M, TFD.M, e2a.M, p.M)
-  R0.c[,j] = myR0(a.M, b.M, c[,j], PDR.M, MDR.M, TFD.M, e2a.M, p.M)
-  R0.TFD[,j] = myR0(a.M, b.M, c.M, PDR.M, MDR.M, TFD[,j], e2a.M, p.M)
-  R0.e2a[,j] = myR0(a.M, b.M, c.M, PDR.M, MDR.M, TFD.M, e2a[,j], p.M)
-  R0.MDR[,j] = myR0(a.M, b.M, c.M, PDR.M, MDR[,j], TFD.M, e2a.M, p.M)
-  R0.p[,j] =myR0(a.M, b.M, c.M, PDR.M, MDR.M, TFD.M, e2a.M, p[,j])
-  R0.PDR[,j] = myR0(a.M, b.M, c.M, PDR[,j], MDR.M, TFD.M, e2a.M, p.M)
+  R0.a[,j] = myR0(a[,j], b.M, c.M, PDR.M, MDR.M, TFD.M, e2a.M, mu.M)
+  R0.b[,j] = myR0(a.M, b[,j], c.M, PDR.M, MDR.M, TFD.M, e2a.M, mu.M)
+  R0.c[,j] = myR0(a.M, b.M, c[,j], PDR.M, MDR.M, TFD.M, e2a.M, mu.M)
+  R0.TFD[,j] = myR0(a.M, b.M, c.M, PDR.M, MDR.M, TFD[,j], e2a.M, mu.M)
+  R0.e2a[,j] = myR0(a.M, b.M, c.M, PDR.M, MDR.M, TFD.M, e2a[,j], mu.M)
+  R0.MDR[,j] = myR0(a.M, b.M, c.M, PDR.M, MDR[,j], TFD.M, e2a.M, mu.M)
+  R0.mu[,j] =myR0(a.M, b.M, c.M, PDR.M, MDR.M, TFD.M, e2a.M, mu[,j])
+  R0.PDR[,j] = myR0(a.M, b.M, c.M, PDR[,j], MDR.M, TFD.M, e2a.M, mu.M)
 }
 
 ## Calculate the distance within the inner 95% quantile for R0 overall
@@ -121,7 +118,7 @@ c.q<- apply(R0.c, 1, FUN=quantile, probs=0.925)- apply(R0.c, 1, FUN=quantile, pr
 TFD.q<- apply(R0.TFD, 1, FUN=quantile, probs=0.925)- apply(R0.TFD, 1, FUN=quantile, probs=0.025)
 e2a.q<-apply(R0.e2a, 1, FUN=quantile, probs=0.925)- apply(R0.e2a, 1, FUN=quantile, probs=0.025)
 MDR.q<-  apply(R0.MDR, 1, FUN=quantile, probs=0.925)- apply(R0.MDR, 1, FUN=quantile, probs=0.025)
-p.q <-  apply(R0.p, 1, FUN=quantile, probs=0.925)- apply(R0.p, 1, FUN=quantile, probs=0.025)
+mu.q <-  apply(R0.mu, 1, FUN=quantile, probs=0.925)- apply(R0.mu, 1, FUN=quantile, probs=0.025)
 PDR.q<- apply(R0.PDR, 1, FUN=quantile, probs=0.925)- apply(R0.PDR, 1, FUN=quantile, probs=0.025)
 
 ## Next plot relative width of quantiles 
@@ -136,12 +133,12 @@ lines(temp, c.q/(R0.q +ec), col=3, lwd=2)
 lines(temp, TFD.q/(R0.q +ec), col=4, lwd=2)
 lines(temp, e2a.q/(R0.q +ec), col=5, lwd=2)
 lines(temp, MDR.q/(R0.q +ec), col=6, lwd=2)
-lines(temp, p.q/(R0.q +ec), col=7, lwd=3)
+lines(temp, mu.q/(R0.mu +ec), col=7, lwd=3)
 lines(temp, PDR.q/(R0.q +ec), col=8, lwd=3)
 
 # Adding a legend to the plot.
 
-leg.text<-c("a", "b", "c", "TFD", "e2a", "MDR", "p", "PDR")
+leg.text<-c("a", "b", "c", "TFD", "e2a", "MDR", "mu", "PDR")
 leg.col<-seq(2, 8, by=1)
 legend(30, 0.95,  leg.text, col=leg.col, lwd=c(2,2,2,2,2,3,3))
 
@@ -196,6 +193,8 @@ TFD.data = subset(data.all, trait.name=="TFD" & trait2.name=="R1")
 e2a.data = subset(data.all, trait.name=="pEA")
 MDR.data = subset(data.all, trait.name=="MDR")
 p.data = subset(data.all, trait.name=="p.succ")
+p.data$trait = exp(-(p.data$trait/p.data$trait2))
+mu.data <- p.data
 
 # Creating the mean responses.
 
@@ -205,7 +204,7 @@ c.M<-rowMeans(c)
 MDR.M<-rowMeans(MDR)
 TFD.M<-rowMeans(TFD)
 e2a.M<-rowMeans(e2a)
-p.M<-rowMeans(p)
+mu.M<-rowMeans(mu)
 
 # Getting the HPD intervals.
 
@@ -215,7 +214,7 @@ c.int = HPDinterval(mcmc(t(c)))
 TFD.int = HPDinterval(mcmc(t(TFD)))
 e2a.int = HPDinterval(mcmc(t(e2a)))
 MDR.int = HPDinterval(mcmc(t(MDR)))
-p.int = HPDinterval(mcmc(t(p)))
+mu.int = HPDinterval(mcmc(t(mu)))
 
 # Setting up the plot area.
 
@@ -253,8 +252,8 @@ lines(temp, MDR.M)
 lines(temp, MDR.int[,1], lty=2, col=2)
 lines(temp, MDR.int[,2], lty=2, col=2)
 
-plot(trait/trait2~T, data=p.data, main="p", xlim=c(10,40), ylim=c(0,1))
-lines(temp, p.M)
-lines(temp, p.int[,1], lty=2, col=2)
-lines(temp, p.int[,2], lty=2, col=2)
+plot(trait~T, data=mu.data, main="mu", xlim=c(10,40), ylim=c(0,1))
+lines(temp, mu.M)
+lines(temp, mu.int[,1], lty=2, col=2)
+lines(temp, mu.int[,2], lty=2, col=2)
 
